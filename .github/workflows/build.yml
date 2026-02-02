@@ -23,7 +23,7 @@ jobs:
         with:
           channel: 'stable'
 
-      # 1. حماية كودك الأصلي من الحذف (خطوة مهمة جداً)
+      # 1. حماية كودك (الطبيب) من الضياع
       - name: Backup User Code
         run: |
           cp pubspec.yaml pubspec.yaml.bak
@@ -32,18 +32,18 @@ jobs:
             cp android/app/google-services.json google-services.json.bak
           fi
 
-      # 2. إنشاء ملفات الأندرويد (سيقوم بإنشاء ملفات .kts الجديدة)
-      - name: Generate Project Skeleton
-        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
+      # 2. إنشاء ملفات الأندرويد (بنظام Java القديم والمستقر)
+      # لاحظ الإضافة المهمة: --android-language java
+      - name: Generate Project Skeleton (Java Mode)
+        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --android-language java --no-pub --overwrite
 
-      # 3. استعادة كودك الأصلي وملف الخدمات
+      # 3. استعادة كودك وملف الخدمات
       - name: Restore User Code
         run: |
           mv pubspec.yaml.bak pubspec.yaml
           rm -rf lib
           mv lib_bak lib
           
-          # استعادة google-services.json
           if [ -f "google-services.json.bak" ]; then
             mkdir -p android/app
             mv google-services.json.bak android/app/google-services.json
@@ -52,18 +52,17 @@ jobs:
             echo "WARNING: Google Services file missing!"
           fi
 
-      # 4. تعديل ملفات Kotlin (.kts) الجديدة لربط الفايربيز
-      - name: Inject Firebase Config (Kotlin DSL)
+      # 4. حقن إعدادات فايربيز (الطريقة المضمونة لملفات Java)
+      - name: Inject Firebase Config (Groovy)
         run: |
-          # إضافة الـ Classpath في الملف الرئيسي
-          # نبحث عن dependencies ونضيف السطر بعدها
-          sed -i '/dependencies {/a \        classpath("com.google.gms:google-services:4.4.1")' android/build.gradle.kts
+          # إضافة Classpath في الملف الرئيسي
+          sed -i 's/dependencies {/dependencies { classpath "com.google.gms:google-services:4.4.1"/' android/build.gradle
           
-          # إضافة الـ Plugin في ملف التطبيق (نضيفه في آخر الملف أسهل وأضمن)
-          echo 'apply(plugin = "com.google.gms.google-services")' >> android/app/build.gradle.kts
+          # تفعيل الـ Plugin في ملف التطبيق
+          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
           
-          # تعديل الحد الأدنى للإصدار (MinSDK)
-          sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle.kts
+          # رفع الحد الأدنى للإصدار
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
 
       - name: Install Dependencies
         run: flutter pub get
