@@ -23,7 +23,7 @@ jobs:
         with:
           channel: 'stable'
 
-      # 1. حفظ كودك الأصلي وملف الخدمات
+      # 1. حفظ الكود
       - name: Backup User Code
         run: |
           cp pubspec.yaml pubspec.yaml.bak
@@ -32,59 +32,45 @@ jobs:
             cp android/app/google-services.json google-services-backup.json
           fi
 
-      # 2. تنظيف المجلد القديم المسبب للمشاكل
-      - name: Clean Old Android Directory
+      # 2. تنظيف
+      - name: Clean Old Android
         run: rm -rf android
 
-      # 3. إنشاء المشروع من الصفر (سنقبل بأي نوع ملفات ينشئه النظام)
+      # 3. إنشاء جديد
       - name: Generate Project Skeleton
         run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
 
-      # 4. استرجاع كودك وملف الخدمات
+      # 4. استرجاع الكود
       - name: Restore User Code
         run: |
           mv pubspec.yaml.bak pubspec.yaml
           rm -rf lib
           mv lib_bak lib
-          
           if [ -f "google-services-backup.json" ]; then
             mkdir -p android/app
             mv google-services-backup.json android/app/google-services.json
-            echo "Google Services Restored."
-          else
-            echo "WARNING: Google Services file missing!"
           fi
 
-      # 5. الحقن الذكي (Smart Injection) - هذا هو الجزء الذي يحل المشكلة
-      - name: Inject Firebase Config (Auto-Detect)
+      # 5. حقن الصلاحيات + فايربيز (هذه الإضافة الجديدة والضرورية للمايكروفون)
+      - name: Inject Permissions & Config
         run: |
-          # الاحتمال الأول: ملفات Kotlin الحديثة (.kts)
+          # 1. إضافة صلاحية المايكروفون والإنترنت في AndroidManifest
+          # نبحث عن وسم <application ونضع الصلاحيات قبله
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.RECORD_AUDIO"/>' android/app/src/main/AndroidManifest.xml
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.MICROPHONE"/>' android/app/src/main/AndroidManifest.xml
+
+          # 2. إعدادات فايربيز (التي نجحت سابقاً)
           if [ -f "android/build.gradle.kts" ]; then
-            echo "Detected Kotlin DSL (.kts)"
-            
-            # إضافة Classpath في بداية الملف (طريقة آمنة جداً)
             echo 'buildscript { repositories { google(); mavenCentral() }; dependencies { classpath("com.google.gms:google-services:4.4.2") } }' > temp_header
             cat android/build.gradle.kts >> temp_header
             mv temp_header android/build.gradle.kts
-            
-            # تفعيل Plugin في ملف التطبيق
             echo 'apply(plugin = "com.google.gms.google-services")' >> android/app/build.gradle.kts
-            
-            # إصلاح MinSDK
             sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle.kts
-            
-          # الاحتمال الثاني: ملفات Groovy القديمة (.gradle)
           elif [ -f "android/build.gradle" ]; then
-            echo "Detected Groovy DSL (.gradle)"
-            
             sed -i '/dependencies {/a \        classpath "com.google.gms:google-services:4.4.1"' android/build.gradle
             echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
             sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
-            
-          else
-            echo "CRITICAL ERROR: No build file found!"
-            ls -R android
-            exit 1
           fi
 
       - name: Install Dependencies
@@ -98,4 +84,3 @@ jobs:
         with:
           name: afya-dz-release
           path: build/app/outputs/flutter-apk/app-release.apk
- 
