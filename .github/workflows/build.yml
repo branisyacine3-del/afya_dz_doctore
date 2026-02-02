@@ -23,18 +23,28 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Generate Project Skeleton (The Magic Step)
+      # نقوم بنسخ ملف الجيسون مؤقتاً لمكان آمن
+      - name: Backup Google Services JSON
         run: |
-          # هذا الأمر سيصنع ملفات الأندرويد الناقصة تلقائياً
-          flutter create . --org com.doctor --project-name afyadz
-          
-      - name: Restore Google Services Key
-        run: |
-          # التأكد من وجود المفتاح في مكانه
           if [ -f "android/app/google-services.json" ]; then
-            echo "Key found!"
+            cp android/app/google-services.json google-services-backup.json
+            echo "Backup created successfully."
           else
-            echo "Warning: google-services.json not found in android/app/"
+            echo "WARNING: google-services.json NOT FOUND in repo!"
+          fi
+
+      - name: Generate Project Skeleton
+        run: flutter create . --org com.doctor --project-name afyadz
+
+      # نعيد الملف لمكانه الأصلي داخل مجلد الأندرويد الذي تم إنشاؤه
+      - name: Restore Google Services JSON
+        run: |
+          if [ -f "google-services-backup.json" ]; then
+            mkdir -p android/app
+            cp google-services-backup.json android/app/google-services.json
+            echo "Google Services JSON restored successfully."
+          else
+            echo "CRITICAL ERROR: Backup file not found. App will crash!"
           fi
 
       - name: Install Dependencies
