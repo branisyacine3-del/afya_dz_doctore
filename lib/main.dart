@@ -82,7 +82,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   bool _isLoading = false;
   late AnimationController _animationController;
 
-  // مفتاحك الصحيح
+  // مفتاحك الصحيح (الذي جربناه)
   final String _apiKey = 'AIzaSyBhZPtxFDvuH1pAMuZjJlAyu1ZESjRC9r4';
 
   @override
@@ -130,8 +130,8 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     setState(() => _isLoading = true);
 
     try {
-      // استخدام الموديل القوي والسريع 1.5 Flash
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+      // التغيير هنا: استخدام gemini-2.0-flash الذي نجح معك
+      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
       final content = [Content.text('''
         System Instruction:
         أنت طبيب ذكي جزائري في تطبيق Afya DZ.
@@ -143,7 +143,6 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
       final response = await model.generateContent(content);
       _addMessage("role", "assistant", response.text ?? "لا يوجد رد");
     } catch (e) {
-      // هنا سنرى الخطأ الحقيقي
       _addMessage("role", "assistant", "🔴 حدث خطأ:\n$e");
     } finally {
       setState(() => _isLoading = false);
@@ -194,6 +193,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   }
 }
 
+// كلاسات LoginScreen و PaymentScreen (انسخها من الكود السابق أو اتركها كما هي إذا لم تمسحها)
 class LoginScreen extends StatefulWidget { const LoginScreen({super.key}); @override State<LoginScreen> createState() => _LoginScreenState(); }
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController(); final _nameController = TextEditingController(); final FirebaseAuth _auth = FirebaseAuth.instance; String? _verificationId; bool _isLoading = false;
