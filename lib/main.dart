@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http; // مكتبة الاتصال الجديدة
+import 'dart:convert'; // لتحليل البيانات
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -66,6 +67,7 @@ class PaymentCheckGate extends StatelessWidget {
   }
 }
 
+// --- شاشة الطبيب (باستخدام Groq / Llama 3) ---
 class DoctorScreen extends StatefulWidget {
   final bool isAdmin;
   const DoctorScreen({super.key, required this.isAdmin});
@@ -82,8 +84,8 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   bool _isLoading = false;
   late AnimationController _animationController;
 
-  // 🔴 ضع مفتاحك الجديد هنا
-  final String _apiKey = 'AIzaSyA3zCizFpy7Asq6IIYmLhCD072nkIZVbjE';
+  // 🔴🔴 ضع مفتاح Groq الجديد هنا (يبدأ بـ gsk_) 🔴🔴
+  final String _apiKey = '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';
 
   @override
   void initState() {
@@ -125,24 +127,40 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     }
   }
 
+  // دالة الاتصال الجديدة (Groq API)
   Future<void> _handleUserMessage(String message) async {
     _addMessage("role", "user", message);
     setState(() => _isLoading = true);
 
     try {
-      // ✅ نستخدم gemini-1.5-flash
-      // (شرط أن يكون pubspec.yaml محدثاً ليعمل هذا الموديل)
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
-      final content = [Content.text('''
-        System Instruction:
-        أنت طبيب ذكي جزائري في تطبيق Afya DZ.
-        تكلم بالدارجة الجزائرية المفهومة.
-        حلل الأعراض: "$message"
-        إذا خطيرة اطلب المستشفى.
-      ''')];
+      final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
       
-      final response = await model.generateContent(content);
-      _addMessage("role", "assistant", response.text ?? "لا يوجد رد");
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_apiKey', // استخدام المفتاح
+        },
+        body: jsonEncode({
+          'model': 'llama3-70b-8192', // موديل قوي جداً وسريع
+          'messages': [
+            {
+              'role': 'system', 
+              'content': 'أنت طبيب ذكي جزائري في تطبيق Afya DZ. تكلم بالدارجة الجزائرية المفهومة. حلل الأعراض باختصار وإذا الحالة خطيرة اطلب المستشفى.'
+            },
+            {'role': 'user', 'content': message}
+          ],
+          'temperature': 0.7,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final reply = data['choices'][0]['message']['content'];
+        _addMessage("role", "assistant", reply);
+      } else {
+        _addMessage("role", "assistant", "حدث خطأ في الاتصال: ${response.statusCode}");
+      }
     } catch (e) {
       _addMessage("role", "assistant", "🔴 حدث خطأ:\n$e");
     } finally {
@@ -194,6 +212,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   }
 }
 
+// الكلاسات الأخرى (LoginScreen, PaymentScreen)
 class LoginScreen extends StatefulWidget { const LoginScreen({super.key}); @override State<LoginScreen> createState() => _LoginScreenState(); }
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController(); final _nameController = TextEditingController(); final FirebaseAuth _auth = FirebaseAuth.instance; String? _verificationId; bool _isLoading = false;
