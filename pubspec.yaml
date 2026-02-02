@@ -1,16 +1,36 @@
+name: afyadz
+description: Afya DZ Doctor AI App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
 dependencies:
   flutter:
     sdk: flutter
-  # فايربيز (قاعدة البيانات وتسجيل الدخول)
+  
+  # --- Firebase ---
   firebase_core: ^2.24.2
   firebase_auth: ^4.16.0
   cloud_firestore: ^4.14.0
-  # الذكاء الاصطناعي (عقل الطبيب)
+  
+  # --- AI & Logic ---
   google_generative_ai: ^0.2.0
-  # متصفح للدفع (SlickPay)
+  
+  # --- Utilities ---
   webview_flutter: ^4.4.2
-  # تحويل الصوت لنص (الميكروفون)
   speech_to_text: ^6.6.0
-  # الصلاحيات والتخزين
   permission_handler: ^11.0.1
   shared_preferences: ^2.2.2
+  
+  # --- UI ---
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
