@@ -51,6 +51,7 @@ class PaymentCheckGate extends StatelessWidget {
   const PaymentCheckGate({super.key, required this.user});
   @override
   Widget build(BuildContext context) {
+    // رقم الأدمن
     if (user.phoneNumber == "+213697443312" || user.phoneNumber == "+2130697443312") {
        return const DoctorScreen(isAdmin: true);
     }
@@ -66,6 +67,7 @@ class PaymentCheckGate extends StatelessWidget {
   }
 }
 
+// --- شاشة الطبيب (التصميم الاحترافي) ---
 class DoctorScreen extends StatefulWidget {
   final bool isAdmin;
   const DoctorScreen({super.key, required this.isAdmin});
@@ -82,8 +84,8 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   bool _isLoading = false;
   late AnimationController _animationController;
 
-  // مفتاحك الصحيح (الذي جربناه)
-  final String _apiKey = 'AIzaSyAouNFZKBnJz6gHM06YOYTxzM6RaFimt4U';
+  // 🔴 هام جداً: ضع مفتاحك الجديد هنا بين العلامتين
+  final String _apiKey = 'AIzaSyCz8Uzv2VyQ9oY-xj5A4WcRUh2eMoleb6s';
 
   @override
   void initState() {
@@ -130,8 +132,8 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     setState(() => _isLoading = true);
 
     try {
-      // التغيير هنا: استخدام gemini-2.0-flash الذي نجح معك
-      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
+      // ✅ عدنا للموديل المستقر والمجاني 1.5 Flash
+      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
       final content = [Content.text('''
         System Instruction:
         أنت طبيب ذكي جزائري في تطبيق Afya DZ.
@@ -172,7 +174,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
               },
             ),
           ),
-          if (_isLoading) const Text("جاري التشخيص...", style: TextStyle(color: Colors.grey)),
+          if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: Text("جاري التشخيص...", style: TextStyle(color: Colors.grey))),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 20),
             decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(30)), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
@@ -193,7 +195,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   }
 }
 
-// كلاسات LoginScreen و PaymentScreen (انسخها من الكود السابق أو اتركها كما هي إذا لم تمسحها)
+// --- شاشة تسجيل الدخول ---
 class LoginScreen extends StatefulWidget { const LoginScreen({super.key}); @override State<LoginScreen> createState() => _LoginScreenState(); }
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController(); final _nameController = TextEditingController(); final FirebaseAuth _auth = FirebaseAuth.instance; String? _verificationId; bool _isLoading = false;
@@ -201,4 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showOtpDialog() { final otpController = TextEditingController(); showDialog(context: context, barrierDismissible: false, builder: (context) => AlertDialog(title: const Text('كود التحقق'), content: TextField(controller: otpController, keyboardType: TextInputType.number), actions: [TextButton(onPressed: () async { PhoneAuthCredential c = PhoneAuthProvider.credential(verificationId: _verificationId!, smsCode: otpController.text); await _auth.signInWithCredential(c); if (_auth.currentUser != null) { await FirebaseFirestore.instance.collection('users').doc(_auth.currentUser!.uid).set({'name': _nameController.text, 'phone': _auth.currentUser!.phoneNumber, 'isPaid': false}, SetOptions(merge: true)); } Navigator.pop(context); }, child: const Text('تأكيد'))])); }
   @override Widget build(BuildContext context) { return Scaffold(backgroundColor: Colors.white, body: Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)), const SizedBox(height: 20), const Text("Afya DZ", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))), const SizedBox(height: 40), TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder())), const SizedBox(height: 10), TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'رقم الهاتف (بدون 0)', prefixText: '+213 ', border: OutlineInputBorder())), const SizedBox(height: 20), _isLoading ? const CircularProgressIndicator() : ElevatedButton(onPressed: _verifyPhone, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BFA5), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50)), child: const Text("دخول"))]))); }
 }
-class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: Text("يرجى الدفع لتفعيل الحساب"))); } }
+
+// --- شاشة الدفع ---
+class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); final String slickPayLink = "https://slick-pay.com/invoice/payment/eyJpdiI6IlFVZzVxTEljNlk3SmRZd0xwc0h3dmc9PSIsInZhbHVlIjoiWHFDY3pBaFJWWGFXTFNkcUtCeWs0TG54S25Qa2tlM3pqRDFScWs3K0xKRT0iLCJtYWMiOiJlM2U4ZmVlNDgzYTIxYmY1NmQ3NDJmZTliOTljNjE4N2M2ZWQ0M2JhMjg3YmNiYzU1YjYxZTlmNTZjYTIyMzA3IiwidGFnIjoiIn0=/merchant"; @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: ElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SlickPayWebView(url: slickPayLink))), child: const Text("دفع الاشتراك")))); } }
+class SlickPayWebView extends StatelessWidget { final String url; const SlickPayWebView({super.key, required this.url}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("الدفع")), body: WebViewWidget(controller: WebViewController()..loadRequest(Uri.parse(url)))); } }
