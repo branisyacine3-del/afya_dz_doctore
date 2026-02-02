@@ -1,0 +1,16 @@
+dependencies:
+  flutter:
+    sdk: flutter
+  # فايربيز (قاعدة البيانات وتسجيل الدخول)
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  # الذكاء الاصطناعي (عقل الطبيب)
+  google_generative_ai: ^0.2.0
+  # متصفح للدفع (SlickPay)
+  webview_flutter: ^4.4.2
+  # تحويل الصوت لنص (الميكروفون)
+  speech_to_text: ^6.6.0
+  # الصلاحيات والتخزين
+  permission_handler: ^11.0.1
+  shared_preferences: ^2.2.2
