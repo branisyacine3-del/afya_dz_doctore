@@ -12,7 +12,7 @@ dependencies:
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
   cloud_firestore: ^5.0.0
-  # تحديث المكتبة لأحدث إصدار
+  # 👇 هذا هو التحديث الضروري ليعمل الموديل الجديد
   google_generative_ai: ^0.4.0
   webview_flutter: ^4.8.0
   speech_to_text: ^7.0.0
