@@ -9,23 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  # --- Firebase (آخر إصدارات مستقرة) ---
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
   cloud_firestore: ^5.0.0
-  
-  # --- AI & Logic ---
+  # تحديث المكتبة لأحدث إصدار
   google_generative_ai: ^0.4.0
-  
-  # --- Utilities ---
   webview_flutter: ^4.8.0
-  # هذا هو التعديل المهم (الإصدار 7 يدعم النظام الجديد)
   speech_to_text: ^7.0.0
   permission_handler: ^11.3.1
   shared_preferences: ^2.2.3
-  
-  # --- UI ---
   cupertino_icons: ^1.0.6
 
 dev_dependencies:
