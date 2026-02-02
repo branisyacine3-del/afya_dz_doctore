@@ -83,7 +83,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   late AnimationController _animationController;
 
   // مفتاحك الصحيح (الذي جربناه)
-  final String _apiKey = 'AIzaSyBhZPtxFDvuH1pAMuZjJlAyu1ZESjRC9r4';
+  final String _apiKey = 'AIzaSyAouNFZKBnJz6gHM06YOYTxzM6RaFimt4U';
 
   @override
   void initState() {
