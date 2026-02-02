@@ -23,7 +23,7 @@ jobs:
         with:
           channel: 'stable'
 
-      # 1. حماية كودك (الطبيب) من الضياع
+      # 1. حماية كودك الأصلي
       - name: Backup User Code
         run: |
           cp pubspec.yaml pubspec.yaml.bak
@@ -32,10 +32,9 @@ jobs:
             cp android/app/google-services.json google-services.json.bak
           fi
 
-      # 2. إنشاء ملفات الأندرويد (بنظام Java القديم والمستقر)
-      # لاحظ الإضافة المهمة: --android-language java
-      - name: Generate Project Skeleton (Java Mode)
-        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --android-language java --no-pub --overwrite
+      # 2. إنشاء هيكل المشروع (نترك فلاتر ينشئ ملفات Kotlin براحته)
+      - name: Generate Project Skeleton
+        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
 
       # 3. استعادة كودك وملف الخدمات
       - name: Restore User Code
@@ -52,17 +51,18 @@ jobs:
             echo "WARNING: Google Services file missing!"
           fi
 
-      # 4. حقن إعدادات فايربيز (الطريقة المضمونة لملفات Java)
-      - name: Inject Firebase Config (Groovy)
+      # 4. حقن إعدادات فايربيز (داخل ملفات KTS الجديدة)
+      # هذا هو الجزء الذي سيصلح الخطأ الأحمر والخطأ الأخير
+      - name: Inject Firebase Config (Kotlin DSL)
         run: |
-          # إضافة Classpath في الملف الرئيسي
-          sed -i 's/dependencies {/dependencies { classpath "com.google.gms:google-services:4.4.1"/' android/build.gradle
+          # إضافة الـ Classpath في الملف الرئيسي (نبحث عن سطر dependencies ونضيف بعده)
+          sed -i '/com.android.tools.build:gradle/a \        classpath("com.google.gms:google-services:4.4.2")' android/build.gradle.kts
           
-          # تفعيل الـ Plugin في ملف التطبيق
-          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+          # تفعيل الـ Plugin في ملف التطبيق (نضيفه في آخر الملف)
+          echo 'apply(plugin = "com.google.gms.google-services")' >> android/app/build.gradle.kts
           
-          # رفع الحد الأدنى للإصدار
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
+          # تعديل الحد الأدنى للإصدار (MinSDK) ليقبله فايربيز
+          sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle.kts
 
       - name: Install Dependencies
         run: flutter pub get
