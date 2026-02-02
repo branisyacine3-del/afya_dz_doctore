@@ -23,46 +23,49 @@ jobs:
         with:
           channel: 'stable'
 
-      # 1. حماية كودك الأصلي
+      # 1. حفظ كودك الأصلي وملف الخدمات
       - name: Backup User Code
         run: |
           cp pubspec.yaml pubspec.yaml.bak
           cp -r lib lib_bak
           if [ -f "android/app/google-services.json" ]; then
-            cp android/app/google-services.json google-services.json.bak
+            cp android/app/google-services.json google-services-backup.json
           fi
 
-      # 2. إنشاء هيكل المشروع (نترك فلاتر ينشئ ملفات Kotlin براحته)
-      - name: Generate Project Skeleton
-        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
+      # 2. التنظيف الجذري (مسح مجلد أندرويد القديم المسبب للمشاكل)
+      - name: Clean Old Android Files
+        run: rm -rf android
 
-      # 3. استعادة كودك وملف الخدمات
+      # 3. إنشاء المشروع من الصفر بلغة Java (السهلة والمضمونة)
+      - name: Generate Project Skeleton (Java)
+        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --android-language java --no-pub --overwrite
+
+      # 4. استرجاع كودك وملف الخدمات
       - name: Restore User Code
         run: |
           mv pubspec.yaml.bak pubspec.yaml
           rm -rf lib
           mv lib_bak lib
           
-          if [ -f "google-services.json.bak" ]; then
+          if [ -f "google-services-backup.json" ]; then
             mkdir -p android/app
-            mv google-services.json.bak android/app/google-services.json
+            mv google-services-backup.json android/app/google-services.json
             echo "Google Services Restored."
           else
             echo "WARNING: Google Services file missing!"
           fi
 
-      # 4. حقن إعدادات فايربيز (داخل ملفات KTS الجديدة)
-      # هذا هو الجزء الذي سيصلح الخطأ الأحمر والخطأ الأخير
-      - name: Inject Firebase Config (Kotlin DSL)
+      # 5. حقن إعدادات فايربيز (بطريقة Java المضمونة)
+      - name: Inject Firebase Config
         run: |
-          # إضافة الـ Classpath في الملف الرئيسي (نبحث عن سطر dependencies ونضيف بعده)
-          sed -i '/com.android.tools.build:gradle/a \        classpath("com.google.gms:google-services:4.4.2")' android/build.gradle.kts
+          # إضافة Classpath في الملف الرئيسي (نبحث عن السطر ونضيف تحته)
+          sed -i '/com.android.tools.build:gradle/a \        classpath "com.google.gms:google-services:4.4.1"' android/build.gradle
           
-          # تفعيل الـ Plugin في ملف التطبيق (نضيفه في آخر الملف)
-          echo 'apply(plugin = "com.google.gms.google-services")' >> android/app/build.gradle.kts
+          # تفعيل الـ Plugin في ملف التطبيق
+          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
           
-          # تعديل الحد الأدنى للإصدار (MinSDK) ليقبله فايربيز
-          sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle.kts
+          # تعديل minSdkVersion ليعمل التطبيق
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
 
       - name: Install Dependencies
         run: flutter pub get
