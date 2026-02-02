@@ -32,13 +32,13 @@ jobs:
             cp android/app/google-services.json google-services-backup.json
           fi
 
-      # 2. التنظيف الجذري (مسح مجلد أندرويد القديم المسبب للمشاكل)
-      - name: Clean Old Android Files
+      # 2. تنظيف المجلد القديم المسبب للمشاكل
+      - name: Clean Old Android Directory
         run: rm -rf android
 
-      # 3. إنشاء المشروع من الصفر بلغة Java (السهلة والمضمونة)
-      - name: Generate Project Skeleton (Java)
-        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --android-language java --no-pub --overwrite
+      # 3. إنشاء المشروع من الصفر (سنقبل بأي نوع ملفات ينشئه النظام)
+      - name: Generate Project Skeleton
+        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
 
       # 4. استرجاع كودك وملف الخدمات
       - name: Restore User Code
@@ -55,17 +55,37 @@ jobs:
             echo "WARNING: Google Services file missing!"
           fi
 
-      # 5. حقن إعدادات فايربيز (بطريقة Java المضمونة)
-      - name: Inject Firebase Config
+      # 5. الحقن الذكي (Smart Injection) - هذا هو الجزء الذي يحل المشكلة
+      - name: Inject Firebase Config (Auto-Detect)
         run: |
-          # إضافة Classpath في الملف الرئيسي (نبحث عن السطر ونضيف تحته)
-          sed -i '/com.android.tools.build:gradle/a \        classpath "com.google.gms:google-services:4.4.1"' android/build.gradle
-          
-          # تفعيل الـ Plugin في ملف التطبيق
-          echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
-          
-          # تعديل minSdkVersion ليعمل التطبيق
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
+          # الاحتمال الأول: ملفات Kotlin الحديثة (.kts)
+          if [ -f "android/build.gradle.kts" ]; then
+            echo "Detected Kotlin DSL (.kts)"
+            
+            # إضافة Classpath في بداية الملف (طريقة آمنة جداً)
+            echo 'buildscript { repositories { google(); mavenCentral() }; dependencies { classpath("com.google.gms:google-services:4.4.2") } }' > temp_header
+            cat android/build.gradle.kts >> temp_header
+            mv temp_header android/build.gradle.kts
+            
+            # تفعيل Plugin في ملف التطبيق
+            echo 'apply(plugin = "com.google.gms.google-services")' >> android/app/build.gradle.kts
+            
+            # إصلاح MinSDK
+            sed -i 's/flutter.minSdkVersion/23/g' android/app/build.gradle.kts
+            
+          # الاحتمال الثاني: ملفات Groovy القديمة (.gradle)
+          elif [ -f "android/build.gradle" ]; then
+            echo "Detected Groovy DSL (.gradle)"
+            
+            sed -i '/dependencies {/a \        classpath "com.google.gms:google-services:4.4.1"' android/build.gradle
+            echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
+            
+          else
+            echo "CRITICAL ERROR: No build file found!"
+            ls -R android
+            exit 1
+          fi
 
       - name: Install Dependencies
         run: flutter pub get
@@ -78,3 +98,4 @@ jobs:
         with:
           name: afya-dz-release
           path: build/app/outputs/flutter-apk/app-release.apk
+ 
