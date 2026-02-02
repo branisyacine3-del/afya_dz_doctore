@@ -10,27 +10,28 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # --- Firebase ---
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.16.0
-  cloud_firestore: ^4.14.0
+  # --- Firebase (آخر إصدارات مستقرة) ---
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
   
   # --- AI & Logic ---
-  google_generative_ai: ^0.2.0
+  google_generative_ai: ^0.4.0
   
   # --- Utilities ---
-  webview_flutter: ^4.4.2
-  speech_to_text: ^6.6.0
-  permission_handler: ^11.0.1
-  shared_preferences: ^2.2.2
+  webview_flutter: ^4.8.0
+  # هذا هو التعديل المهم (الإصدار 7 يدعم النظام الجديد)
+  speech_to_text: ^7.0.0
+  permission_handler: ^11.3.1
+  shared_preferences: ^2.2.3
   
   # --- UI ---
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
