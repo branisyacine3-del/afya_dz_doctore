@@ -23,41 +23,41 @@ jobs:
         with:
           channel: 'stable'
 
-      # 1. نسخ ملف الخدمات وحفظه جانباً
+      # 1. حفظ ملف الخدمات (إن وجد)
       - name: Backup Google Services JSON
         run: |
           if [ -f "android/app/google-services.json" ]; then
             cp android/app/google-services.json google-services-backup.json
-            echo "Backup created successfully."
+            echo "Backup created."
           else
-            echo "WARNING: google-services.json NOT FOUND in repo!"
+            echo "JSON not found in repo (Make sure to upload it if missing)."
           fi
 
-      # 2. إنشاء هيكل المشروع
-      - name: Generate Project Skeleton
-        run: flutter create . --org com.doctor --project-name afyadz
+      # 2. إجبار النظام على إنشاء ملفات الأندرويد (التعديل المهم هنا)
+      - name: Force Project Generation
+        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
 
-      # 3. استرجاع ملف الخدمات لمكانه
+      # 3. استرجاع ملف الخدمات
       - name: Restore Google Services JSON
         run: |
           if [ -f "google-services-backup.json" ]; then
             mkdir -p android/app
             cp google-services-backup.json android/app/google-services.json
-            echo "Google Services JSON restored."
+            echo "JSON Restored."
           else
-            echo "CRITICAL: Backup file not found."
+            echo "Skipping restore (Backup empty)."
           fi
 
-      # 4. (الخطوة الجديدة والعبقرية) حقن إعدادات فايربيز في ملفات Gradle
-      - name: Inject Firebase Configuration
+      # 4. حقن إعدادات فايربيز (بطريقة آمنة لا تسبب أخطاء)
+      - name: Inject Firebase Config
         run: |
-          # إضافة الـ Classpath في ملف الـ Build الرئيسي
-          sed -i '/dependencies {/a \        classpath "com.google.gms:google-services:4.4.1"' android/build.gradle
+          # إضافة Classpath
+          sed -i 's/dependencies {/dependencies { classpath "com.google.gms:google-services:4.4.1"/' android/build.gradle
           
-          # تفعيل الـ Plugin في ملف التطبيق
+          # إضافة Plugin
           echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
           
-          # رفع الحد الأدنى للإصدار ليعمل فايربيز (minSdkVersion 23)
+          # تعديل minSdkVersion
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
 
       - name: Install Dependencies
