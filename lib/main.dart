@@ -76,22 +76,15 @@ class _SplashScreenState extends State<SplashScreen> {
               padding: const EdgeInsets.all(15),
               decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
               child: ClipOval(
-                // ✅ تم التعديل: استدعاء الصورة من المسار المباشر
                 child: Image.asset('logo.png', height: 100, width: 100, fit: BoxFit.cover,
                   errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "عافية",
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
+            const Text("عافية", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 10),
-            const Text(
-              "رعايتك الصحية.. بلمسة ذكية",
-              style: TextStyle(fontSize: 16, color: Colors.white70),
-            ),
+            const Text("رعايتك الصحية.. بلمسة ذكية", style: TextStyle(fontSize: 16, color: Colors.white70)),
             const SizedBox(height: 50),
             const CircularProgressIndicator(color: Colors.white),
           ],
@@ -116,22 +109,21 @@ class IntroScreen extends StatelessWidget {
     return IntroductionScreen(
       pages: [
         PageViewModel(
-          title: "طبيبك الذكي في جيبك",
-          body: "تشخيص فوري ودقيق لحالتك الصحية باستخدام أحدث تقنيات الذكاء الاصطناعي.",
-          // ✅ تم التعديل هنا أيضاً
+          title: "طبيبك الذكي",
+          body: "تشخيص فوري لحالتك باستخدام الذكاء الاصطناعي.",
           image: Image.asset('logo.png', height: 120, errorBuilder: (c,e,s)=>const Icon(Icons.medical_services, size: 100, color: Color(0xFF00BFA5))),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
         PageViewModel(
           title: "تحدث بصوتك",
-          body: "لا داعي للكتابة! اشرح أعراضك بالدارجة وسيفهمك الطبيب فوراً.",
-          image: const Icon(Icons.mic_external_on, size: 120, color: Color(0xFF00BFA5)),
+          body: "اشرح أعراضك بالدارجة وسيفهمك الطبيب فوراً.",
+          image: const Icon(Icons.mic, size: 100, color: Color(0xFF00BFA5)),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
         PageViewModel(
-          title: "خصوصية وأمان",
-          body: "بياناتك مشفرة وآمنة. ابدأ رحلة العلاج الآن مع عافية.",
-          image: const Icon(Icons.verified_user_outlined, size: 120, color: Color(0xFF00BFA5)),
+          title: "مجاني وآمن",
+          body: "سجل حسابك الآن وابدأ رحلة العلاج.",
+          image: const Icon(Icons.security, size: 100, color: Color(0xFF00BFA5)),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
       ],
@@ -139,7 +131,7 @@ class IntroScreen extends StatelessWidget {
       showSkipButton: true,
       skip: const Text("تخطي", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
       next: const Icon(Icons.arrow_forward, color: Color(0xFF00BFA5)),
-      done: const Text("ابدأ الآن", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
+      done: const Text("ابدأ", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
       dotsDecorator: const DotsDecorator(activeColor: Color(0xFF00BFA5)),
     );
   }
@@ -153,7 +145,7 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const LoginScreen();
+        if (!snapshot.hasData) return const EmailAuthScreen(); // شاشة الدخول الجديدة
         return PaymentCheckGate(user: snapshot.data!);
       },
     );
@@ -172,206 +164,121 @@ class PaymentCheckGate extends StatelessWidget {
         var userData = snapshot.data!.data() as Map<String, dynamic>?;
         String userName = userData?['name'] ?? "المريض";
 
-        if (userData?['isPaid'] ?? false) {
-          return DoctorScreen(userName: userName);
-        } else {
-          if (user.phoneNumber == "+213697443312") return DoctorScreen(userName: userName);
-          return PaymentScreen(user: user);
-        }
+        // السماح للجميع بالدخول مؤقتاً أو تفعيل الدفع حسب رغبتك
+        // هنا جعلت الدخول مسموحاً للجميع (تستطيع تفعيل PaymentScreen لاحقاً)
+        return DoctorScreen(userName: userName);
       },
     );
   }
 }
 
-// --- 4. شاشة تسجيل الدخول ---
-class LoginScreen extends StatefulWidget { const LoginScreen({super.key}); @override State<LoginScreen> createState() => _LoginScreenState(); }
-class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController(); 
-  final _nameController = TextEditingController(); 
-  final FirebaseAuth _auth = FirebaseAuth.instance; 
+// --- 4. شاشة التسجيل والدخول (الإيميل) ---
+class EmailAuthScreen extends StatefulWidget {
+  const EmailAuthScreen({super.key});
+  @override
+  State<EmailAuthScreen> createState() => _EmailAuthScreenState();
+}
+
+class _EmailAuthScreenState extends State<EmailAuthScreen> {
+  bool isLogin = true; // للتبديل بين الدخول والتسجيل
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _verifyPhone() async {
-    if (_nameController.text.isEmpty || _phoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("يرجى كتابة الاسم ورقم الهاتف")));
+  Future<void> _submit() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("يرجى ملء جميع الحقول")));
       return;
     }
-    setState(() => _isLoading = true);
-    await _auth.verifyPhoneNumber(
-      phoneNumber: '+213${_phoneController.text.trim()}',
-      verificationCompleted: (c) async { await _auth.signInWithCredential(c); },
-      verificationFailed: (e) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ: ${e.message}')));
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        setState(() => _isLoading = false);
-        Navigator.push(context, MaterialPageRoute(builder: (_) => OTPScreen(
-          verificationId: verificationId, 
-          name: _nameController.text, 
-          phone: _phoneController.text
-        )));
-      },
-      codeAutoRetrievalTimeout: (v) {},
-    );
-  }
+    if (!isLogin && _nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("يرجى كتابة الاسم")));
+      return;
+    }
 
-  @override 
-  Widget build(BuildContext context) { 
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 40),
-              // ✅ تم التعديل: استدعاء الصورة هنا أيضاً
-              Image.asset('logo.png', height: 120, errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 100, color: Color(0xFF00BFA5))),
-              const SizedBox(height: 20),
-              const Text("تسجيل الدخول", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
-              const Text("أدخل بياناتك ليتعرف عليك الطبيب", style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _nameController, 
-                decoration: InputDecoration(
-                  labelText: 'الاسم (مثلاً: أمين)', 
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                )
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _phoneController, 
-                keyboardType: TextInputType.phone, 
-                decoration: InputDecoration(
-                  labelText: 'رقم الهاتف (بدون 0)', 
-                  prefixText: '+213 ',
-                  prefixIcon: const Icon(Icons.phone),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                )
-              ),
-              const SizedBox(height: 30),
-              _isLoading ? const CircularProgressIndicator() : ElevatedButton(
-                onPressed: _verifyPhone, 
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BFA5), 
-                  foregroundColor: Colors.white, 
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                ), 
-                child: const Text("متابعة", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
-              ),
-            ],
-          ),
-        ),
-      ),
-    ); 
-  }
-}
-
-// --- 5. شاشة إدخال الكود (OTP) ---
-class OTPScreen extends StatefulWidget {
-  final String verificationId;
-  final String name;
-  final String phone;
-  const OTPScreen({super.key, required this.verificationId, required this.name, required this.phone});
-
-  @override
-  State<OTPScreen> createState() => _OTPScreenState();
-}
-
-class _OTPScreenState extends State<OTPScreen> {
-  final _otpController = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  int _start = 60;
-  Timer? _timer;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
-
-  void startTimer() {
-    const oneSec = Duration(seconds: 1);
-    _timer = Timer.periodic(oneSec, (Timer timer) {
-      if (_start == 0) {
-        setState(() { timer.cancel(); });
-      } else {
-        setState(() { _start--; });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _submitCode() async {
     setState(() => _isLoading = true);
     try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId, smsCode: _otpController.text);
-      await _auth.signInWithCredential(credential);
-      
-      if (_auth.currentUser != null) {
-          await FirebaseFirestore.instance.collection('users').doc(_auth.currentUser!.uid).set({
-            'name': widget.name, 
-            'phone': _auth.currentUser!.phoneNumber, 
-            'isPaid': false,
-            'lastLogin': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const AuthGate()),
-            (Route<dynamic> route) => false,
-          );
+      UserCredential userCredential;
+      if (isLogin) {
+        // تسجيل دخول
+        userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      } else {
+        // إنشاء حساب جديد
+        userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        // حفظ الاسم
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'isPaid': false,
+        });
       }
+      // النجاح سينقلك تلقائياً عبر AuthGate
+    } on FirebaseAuthException catch (e) {
+      String message = "حدث خطأ";
+      if (e.code == 'user-not-found') message = "لا يوجد حساب بهذا الإيميل";
+      else if (e.code == 'wrong-password') message = "كلمة المرور خاطئة";
+      else if (e.code == 'email-already-in-use') message = "الإيميل مسجل مسبقاً";
+      else if (e.code == 'weak-password') message = "كلمة المرور ضعيفة (يجب أن تكون 6 أحرف على الأقل)";
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("حدث خطأ: $e")));
+    } finally {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("الرمز خاطئ، حاول مرة أخرى")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.black)),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
         child: Column(
           children: [
-            const Text("تأكيد الرقم", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            Text("أرسلنا رمزاً للرقم +213${widget.phone}", style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
+            Image.asset('logo.png', height: 100, errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 100, color: Color(0xFF00BFA5))),
+            const SizedBox(height: 20),
+            Text(isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد", style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
+            const SizedBox(height: 40),
+            
+            if (!isLogin)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: 'الاسم الكامل', prefixIcon: const Icon(Icons.person), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                ),
+              ),
+            
             TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, letterSpacing: 5),
-              decoration: InputDecoration(
-                hintText: "- - - - - -",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(labelText: 'البريد الإلكتروني', prefixIcon: const Icon(Icons.email), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
             ),
-            const SizedBox(height: 20),
-            Text(_start > 0 ? "إعادة الإرسال: $_start ثانية" : "أعد الإرسال الآن", style: const TextStyle(color: Color(0xFF00BFA5))),
-            const Spacer(),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'كلمة المرور', prefixIcon: const Icon(Icons.lock), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 30),
+            
             _isLoading ? const CircularProgressIndicator() : ElevatedButton(
-              onPressed: _submitCode,
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BFA5), 
-                  foregroundColor: Colors.white, 
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-              ),
-              child: const Text("تأكيد ودخول", style: TextStyle(fontSize: 18)),
+              onPressed: _submit,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BFA5), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 55), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: Text(isLogin ? "دخول" : "تسجيل", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 20),
+            TextButton(
+              onPressed: () => setState(() => isLogin = !isLogin),
+              child: Text(isLogin ? "ليس لديك حساب؟ سجل الآن" : "لديك حساب؟ سجل الدخول", style: const TextStyle(color: Color(0xFF00BFA5))),
+            )
           ],
         ),
       ),
@@ -379,7 +286,7 @@ class _OTPScreenState extends State<OTPScreen> {
   }
 }
 
-// --- 6. شاشة الطبيب ---
+// --- 5. شاشة الطبيب ---
 class DoctorScreen extends StatefulWidget {
   final String userName; 
   const DoctorScreen({super.key, required this.userName});
@@ -395,13 +302,13 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
-  // 🔴🔴 مفتاح Groq هنا 🔴🔴
-  final String _apiKey = 'ضع_مفتاح_Groq_الخاص_بك_هنا';
+  // 🔴🔴 ضع مفتاح Groq هنا 🔴🔴
+  final String _apiKey = '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';
 
   @override
   void initState() {
     super.initState();
-    _addMessage("role", "assistant", "أهلاً بك يا ${widget.userName} 👋\nأنا معاك، احكيلي واش بيك اليوم؟");
+    _addMessage("role", "assistant", "أهلاً بك يا ${widget.userName} 👋\nأنا طبيبك الذكي، مما تشكو اليوم؟");
   }
 
   void _addMessage(String key, String role, String text) {
@@ -450,12 +357,8 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
               'content': '''
                 أنت طبيب جزائري محترف وودود في تطبيق عافية.
                 اسم المريض هو: "${widget.userName}".
-                التعليمات:
-                1. تكلم بالدارجة الجزائرية المفهومة.
-                2. لا تكرر اسم المريض في كل جملة.
-                3. اجعل إجابتك منظمة ومرتبة (استخدم نقاط وعوارض).
-                4. إذا كانت الأعراض خطيرة، انصحه بالذهاب للمستشفى.
-                5. اجعل النص يظهر بشكل صحيح من اليمين لليسار.
+                تكلم بالدارجة الجزائرية المفهومة.
+                اجعل النص يظهر بشكل صحيح من اليمين لليسار.
               '''
             },
             {'role': 'user', 'content': message}
@@ -486,6 +389,10 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
         centerTitle: true, 
         backgroundColor: const Color(0xFF00BFA5),
         elevation: 0,
+        actions: [
+          // زر الخروج
+          IconButton(onPressed: () => FirebaseAuth.instance.signOut(), icon: const Icon(Icons.logout, color: Colors.white))
+        ],
       ),
       body: Column(
         children: [
@@ -525,8 +432,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
               },
             ),
           ),
-          if (_isLoading) 
-             const Padding(padding: EdgeInsets.all(8.0), child: Text("يكتب...", style: TextStyle(color: Colors.grey))),
+          if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: Text("يكتب...", style: TextStyle(color: Colors.grey))),
           
           Padding(
             padding: const EdgeInsets.only(bottom: 30, top: 10),
@@ -559,5 +465,4 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     );
   }
 }
-
 class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: Text("يرجى الدفع"))); } }
