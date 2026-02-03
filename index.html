@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عافية - طبيبك الذكي</title>
+    <style>
+        :root {
+            --primary: #00BFA5;
+            --dark: #333;
+            --light: #f4f4f4;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: var(--dark);
+            text-align: center;
+        }
+        header {
+            background: linear-gradient(135deg, #00BFA5, #009688);
+            color: white;
+            padding: 60px 20px;
+            border-bottom-left-radius: 50px;
+            border-bottom-right-radius: 50px;
+        }
+        .logo-img {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        h1 { margin: 0; font-size: 2.5rem; }
+        p.subtitle { font-size: 1.2rem; opacity: 0.9; margin-top: 10px; }
+        
+        .btn-download {
+            background-color: white;
+            color: var(--primary);
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn-download:hover {
+            transform: scale(1.05);
+            background-color: #f9f9f9;
+        }
+        .features {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 40px 20px;
+        }
+        .feature-box {
+            width: 300px;
+            padding: 20px;
+            margin: 10px;
+        }
+        .feature-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
+        
+        .reviews-section {
+            background-color: var(--light);
+            padding: 50px 20px;
+        }
+        .review-card {
+            background: white;
+            padding: 20px;
+            margin: 15px auto;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: right;
+        }
+        .stars { color: #FFD700; }
+        .user-name { font-weight: bold; color: var(--primary); margin-top: 10px; display: block; }
+
+        footer {
+            padding: 20px;
+            background-color: var(--dark);
+            color: white;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="logo.png" alt="شعار عافية" class="logo-img">
+        <h1>تطبيق عافية</h1>
+        <p class="subtitle">رعايتك الصحية.. بلمسة ذكية 🇩🇿</p>
+        
+        <a href="app.apk" class="btn-download" download>
+            📥 حمل التطبيق الآن (مجاناً)
+        </a>
+        <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;">نسخة الأندرويد APK - الحجم 15MB</p>
+    </header>
+
+    <div class="features">
+        <div class="feature-box">
+            <div class="feature-icon">🩺</div>
+            <h3>تشخيص دقيق</h3>
+            <p>ذكاء اصطناعي متطور يحلل أعراضك ويعطيك النصيحة الطبية الفورية.</p>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon">🇩🇿</div>
+            <h3>يفهم الدارجة</h3>
+            <p>تكلم بلهجتك الجزائرية براحتك، الطبيب سيفهمك ويرد عليك.</p>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon">💊</div>
+            <h3>وصفات ونصائح</h3>
+            <p>يقترح عليك الأدوية المتاحة وطرق العلاج المنزلي.</p>
+        </div>
+    </div>
+
+    <div class="reviews-section">
+        <h2>ماذا يقول مستخدمو عافية؟</h2>
+        
+        <div class="review-card">
+            <div class="stars">⭐⭐⭐⭐⭐</div>
+            <p>"والله تطبيق في القمة! وفر عليّ الذهاب للطبيب من أجل زكام بسيط. التشخيص كان دقيق والدواء جاب نتيجة. برافو دكتور ياسين."</p>
+            <span class="user-name">👤 أمين .ب (الجزائر العاصمة)</span>
+        </div>
+
+        <div class="review-card">
+            <div class="stars">⭐⭐⭐⭐⭐</div>
+            <p>"عجبتني فكرة أنه يفهم الدارجة، ساهل بزاف للوالدة تستعمله. ربي يوفقكم مشروع هايل."</p>
+            <span class="user-name">👤 سارة .م (وهران)</span>
+        </div>
+
+        <div class="review-card">
+            <div class="stars">⭐⭐⭐⭐⭐</div>
+            <p>"أفضل تطبيق طبي جزائري جربته. سريع ومجاني والردود احترافية كأنك تحكي مع طبيب حقيقي."</p>
+            <span class="user-name">👤 كريم .ع (سطيف)</span>
+        </div>
+    </div>
+
+    <footer>
+        <p>جميع الحقوق محفوظة © 2026 تطبيق عافية</p>
+        <p>تنبيه: هذا التطبيق للمساعدة الأولية، في الحالات الطارئة يرجى التوجه للمستشفى.</p>
+    </footer>
+
+</body>
+</html>
