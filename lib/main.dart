@@ -294,7 +294,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   String _currentWords = ""; // لتخزين الكلام أثناء الضغط
 
   // 🔴🔴 ضع مفتاح Groq هنا 🔴🔴
-  final String _apiKey = 'ضع_مفتاح_Groq_الخاص_بك_هنا';
+  final String _apiKey = 'gskINgf0sPR1GicF1XlaeWOdyb3FYquWeB3JrOhM976v166hM75HY';
 
   @override
   void initState() {
