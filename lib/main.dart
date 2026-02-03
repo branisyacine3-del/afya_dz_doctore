@@ -109,14 +109,14 @@ class IntroScreen extends StatelessWidget {
     return IntroductionScreen(
       pages: [
         PageViewModel(
-          title: "طبيبك الذكي",
-          body: "تشخيص فوري لحالتك باستخدام الذكاء الاصطناعي.",
+          title: "طبيبك الخبير",
+          body: "تشخيص دقيق وخبرة طبية عالية، معك في أي وقت.",
           image: Image.asset('logo.png', height: 120, errorBuilder: (c,e,s)=>const Icon(Icons.medical_services, size: 100, color: Color(0xFF00BFA5))),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
         PageViewModel(
-          title: "تحدث بصوتك",
-          body: "اشرح أعراضك بالدارجة وسيفهمك الطبيب فوراً.",
+          title: "تحدث بحرية",
+          body: "اشرح أعراضك بصوتك، وسأفهمك بدقة وأعطيك العلاج المناسب.",
           image: const Icon(Icons.mic, size: 100, color: Color(0xFF00BFA5)),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
@@ -145,7 +145,7 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const EmailAuthScreen(); // شاشة الدخول الجديدة
+        if (!snapshot.hasData) return const EmailAuthScreen();
         return PaymentCheckGate(user: snapshot.data!);
       },
     );
@@ -163,9 +163,6 @@ class PaymentCheckGate extends StatelessWidget {
         if (!snapshot.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
         var userData = snapshot.data!.data() as Map<String, dynamic>?;
         String userName = userData?['name'] ?? "المريض";
-
-        // السماح للجميع بالدخول مؤقتاً أو تفعيل الدفع حسب رغبتك
-        // هنا جعلت الدخول مسموحاً للجميع (تستطيع تفعيل PaymentScreen لاحقاً)
         return DoctorScreen(userName: userName);
       },
     );
@@ -180,7 +177,7 @@ class EmailAuthScreen extends StatefulWidget {
 }
 
 class _EmailAuthScreenState extends State<EmailAuthScreen> {
-  bool isLogin = true; // للتبديل بين الدخول والتسجيل
+  bool isLogin = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
@@ -200,18 +197,15 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
     try {
       UserCredential userCredential;
       if (isLogin) {
-        // تسجيل دخول
         userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
       } else {
-        // إنشاء حساب جديد
         userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        // حفظ الاسم
         await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
@@ -219,13 +213,12 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
           'isPaid': false,
         });
       }
-      // النجاح سينقلك تلقائياً عبر AuthGate
     } on FirebaseAuthException catch (e) {
       String message = "حدث خطأ";
       if (e.code == 'user-not-found') message = "لا يوجد حساب بهذا الإيميل";
       else if (e.code == 'wrong-password') message = "كلمة المرور خاطئة";
       else if (e.code == 'email-already-in-use') message = "الإيميل مسجل مسبقاً";
-      else if (e.code == 'weak-password') message = "كلمة المرور ضعيفة (يجب أن تكون 6 أحرف على الأقل)";
+      else if (e.code == 'weak-password') message = "كلمة المرور ضعيفة";
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("حدث خطأ: $e")));
@@ -246,7 +239,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
             const SizedBox(height: 20),
             Text(isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد", style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
             const SizedBox(height: 40),
-            
             if (!isLogin)
               Padding(
                 padding: const EdgeInsets.only(bottom: 15),
@@ -255,7 +247,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
                   decoration: InputDecoration(labelText: 'الاسم الكامل', prefixIcon: const Icon(Icons.person), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),
-            
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -268,7 +259,6 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
               decoration: InputDecoration(labelText: 'كلمة المرور', prefixIcon: const Icon(Icons.lock), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
             ),
             const SizedBox(height: 30),
-            
             _isLoading ? const CircularProgressIndicator() : ElevatedButton(
               onPressed: _submit,
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BFA5), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 55), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
@@ -286,7 +276,7 @@ class _EmailAuthScreenState extends State<EmailAuthScreen> {
   }
 }
 
-// --- 5. شاشة الطبيب ---
+// --- 5. شاشة الطبيب (النسخة النهائية المطورة) ---
 class DoctorScreen extends StatefulWidget {
   final String userName; 
   const DoctorScreen({super.key, required this.userName});
@@ -301,14 +291,15 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   final List<Map<String, String>> _messages = [];
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  String _currentWords = ""; // لتخزين الكلام أثناء الضغط
 
   // 🔴🔴 ضع مفتاح Groq هنا 🔴🔴
-  final String _apiKey = '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';
+  final String _apiKey = 'ضع_مفتاح_Groq_الخاص_بك_هنا';
 
   @override
   void initState() {
     super.initState();
-    _addMessage("role", "assistant", "أهلاً بك يا ${widget.userName} 👋\nأنا طبيبك الذكي، مما تشكو اليوم؟");
+    _addMessage("role", "assistant", "أهلاً بك يا ${widget.userName} 👋\nأنا طبيبك الخبير. أشعرني بما يؤلمك، وسأقوم بتشخيص حالتك بدقة.");
   }
 
   void _addMessage(String key, String role, String text) {
@@ -320,20 +311,31 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     });
   }
 
+  // دالة الاستماع المحسنة (لا تتوقف حتى ترفع إصبعك)
   void _startListening() async {
     bool available = await _speech.initialize(onError: (val) => setState(() { _isListening = false; }));
     if (available) {
-      setState(() { _isListening = true; _statusText = "أنا أسمعك..."; });
-      _speech.listen(localeId: 'ar-DZ', pauseFor: const Duration(seconds: 10), onResult: (val){});
+      setState(() { _isListening = true; _statusText = "جاري الاستماع... (واصل الكلام)"; _currentWords = ""; });
+      _speech.listen(
+        localeId: 'ar-DZ', // يمكن تغييرها لـ ar-SA لو أردت فصحى أفضل في السماع
+        pauseFor: const Duration(seconds: 30), // ✅ الانتظار طويلاً حتى لو سكت المريض
+        onResult: (val) {
+          setState(() {
+            _currentWords = val.recognizedWords;
+          });
+        }
+      );
     }
   }
 
+  // دالة التوقف والإرسال (عند رفع الإصبع فقط)
   void _stopListening() async {
     setState(() { _isListening = false; _statusText = "اضغط مطولاً للتحدث"; });
     await _speech.stop();
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (_speech.lastRecognizedWords.isNotEmpty) {
-      _handleUserMessage(_speech.lastRecognizedWords);
+    
+    // إرسال ما تم التقاطه
+    if (_currentWords.trim().isNotEmpty) {
+      _handleUserMessage(_currentWords);
     }
   }
 
@@ -355,15 +357,23 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
             {
               'role': 'system', 
               'content': '''
-                أنت طبيب جزائري محترف وودود في تطبيق عافية.
-                اسم المريض هو: "${widget.userName}".
-                تكلم بالدارجة الجزائرية المفهومة.
-                اجعل النص يظهر بشكل صحيح من اليمين لليسار.
+                أنت طبيب خبير جداً (خبرة 100 سنة) في تطبيق "عافية". اسم المريض: "${widget.userName}".
+
+                القواعد الصارمة (System Rules):
+                1. 🛑 التخصص: إذا سأل المريض عن "سيارات"، "رياضة"، "سياسة"، أو أي شيء غير طبي، ارفض الإجابة بلطف وقل: "أنا طبيب فقط، اسألني عن صحتك".
+                2. 🗣️ اللغة: تحدث باللغة العربية الفصحى (الواضحة والودودة) ليفهمك الجميع بدقة، وتجنب خلط اللهجات.
+                3. 🩺 التشخيص العميق:
+                   - إذا لم يذكر المريض عمره أو تاريخه المرضي، اسأله أولاً.
+                   - حلل الأعراض بدقة طبية عالية.
+                   - اعطِ نصائح منزلية (أعشاب، راحة، تغذية).
+                   - اقترح أدوية متوفرة في الصيدلية (OTC) بالاسم العلمي، وحدد الجرعة (مثلاً: حبة كل 8 ساعات بعد الأكل).
+                4. ⚠️ الأمان: دائماً ذكر المريض بزيارة المستشفى في الحالات الخطيرة.
+                5. التنسيق: اجعل كلامك مرتباً في نقاط ومن اليمين لليسار.
               '''
             },
             {'role': 'user', 'content': message}
           ],
-          'temperature': 0.6,
+          'temperature': 0.5, // تقليل العشوائية ليكون دقيقاً كطبيب
         }),
       );
 
@@ -390,7 +400,6 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
         backgroundColor: const Color(0xFF00BFA5),
         elevation: 0,
         actions: [
-          // زر الخروج
           IconButton(onPressed: () => FirebaseAuth.instance.signOut(), icon: const Icon(Icons.logout, color: Colors.white))
         ],
       ),
@@ -432,7 +441,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
               },
             ),
           ),
-          if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: Text("يكتب...", style: TextStyle(color: Colors.grey))),
+          if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: Text("الطبيب يكتب التشخيص...", style: TextStyle(color: Colors.grey))),
           
           Padding(
             padding: const EdgeInsets.only(bottom: 30, top: 10),
@@ -443,8 +452,9 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
                   onLongPressEnd: (_) => _stopListening(),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    height: _isListening ? 85 : 70,
-                    width: _isListening ? 85 : 70,
+                    // ✅ تم تكبير الزر هنا كما طلبت
+                    height: _isListening ? 110 : 90, 
+                    width: _isListening ? 110 : 90,
                     decoration: BoxDecoration(
                       color: _isListening ? Colors.redAccent : const Color(0xFF00BFA5),
                       shape: BoxShape.circle,
@@ -452,7 +462,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
                         BoxShadow(color: (_isListening ? Colors.red : const Color(0xFF00BFA5)).withOpacity(0.4), blurRadius: 15, spreadRadius: 2)
                       ],
                     ),
-                    child: Icon(_isListening ? Icons.mic : Icons.mic_none, color: Colors.white, size: 35),
+                    child: Icon(_isListening ? Icons.mic : Icons.mic_none, color: Colors.white, size: 45), // تكبير الأيقونة أيضاً
                   ),
                 ),
                 const SizedBox(height: 10),
