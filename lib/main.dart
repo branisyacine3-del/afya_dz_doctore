@@ -24,15 +24,14 @@ class AfyaDZApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Afya DZ',
+      title: 'عافية', // تم تغيير الاسم هنا أيضاً داخلياً
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: const Color(0xFF00BFA5),
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00BFA5)),
         scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Roboto', // يفضل استخدام خط عربي مثل Cairo لو أضفته مستقبلاً
+        fontFamily: 'Roboto',
       ),
-      // البداية دائماً من شاشة السلاش
       home: const SplashScreen(),
     );
   }
@@ -49,7 +48,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // مؤقت 3 ثواني ثم الانتقال
     Timer(const Duration(seconds: 3), _navigateNext);
   }
 
@@ -59,10 +57,8 @@ class _SplashScreenState extends State<SplashScreen> {
     
     if (mounted) {
       if (!seenIntro) {
-        // إذا مستخدم جديد -> الشاشات التعريفية
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const IntroScreen()));
       } else {
-        // إذا قديم -> بوابة الدخول
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthGate()));
       }
     }
@@ -71,20 +67,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF00BFA5), // لون الخلفية (أخضر التطبيق)
+      backgroundColor: const Color(0xFF00BFA5),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // أيقونة أو لوغو
+            // ✅ الشعار الجديد هنا
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(15),
               decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)),
+              // استخدام الصورة بدلاً من الأيقونة
+              child: ClipOval(
+                child: Image.asset('assets/logo.png', height: 100, width: 100, fit: BoxFit.cover,
+                  errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)), // احتياطي لو الصورة لم ترفع
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
-              "Afya DZ",
+              "عافية",
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 10),
@@ -118,7 +119,7 @@ class IntroScreen extends StatelessWidget {
         PageViewModel(
           title: "طبيبك الذكي في جيبك",
           body: "تشخيص فوري ودقيق لحالتك الصحية باستخدام أحدث تقنيات الذكاء الاصطناعي.",
-          image: const Icon(Icons.medical_services_outlined, size: 120, color: Color(0xFF00BFA5)),
+          image: Image.asset('assets/logo.png', height: 120, errorBuilder: (c,e,s)=>const Icon(Icons.medical_services, size: 100, color: Color(0xFF00BFA5))),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
         PageViewModel(
@@ -129,7 +130,7 @@ class IntroScreen extends StatelessWidget {
         ),
         PageViewModel(
           title: "خصوصية وأمان",
-          body: "بياناتك مشفرة وآمنة. ابدأ رحلة العلاج الآن مع Afya DZ.",
+          body: "بياناتك مشفرة وآمنة. ابدأ رحلة العلاج الآن مع عافية.",
           image: const Icon(Icons.verified_user_outlined, size: 120, color: Color(0xFF00BFA5)),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
@@ -164,21 +165,16 @@ class PaymentCheckGate extends StatelessWidget {
   const PaymentCheckGate({super.key, required this.user});
   @override
   Widget build(BuildContext context) {
-    // تم إلغاء التمييز، الآن يتم جلب الاسم من قاعدة البيانات للجميع
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
         var userData = snapshot.data!.data() as Map<String, dynamic>?;
-        
-        // الاسم الافتراضي إذا لم يوجد اسم
         String userName = userData?['name'] ?? "المريض";
 
         if (userData?['isPaid'] ?? false) {
-          // إذا كان مدفوع أو أدمن (يمكنك إضافة شرط الأدمن هنا يدوياً في الداتابيز)
           return DoctorScreen(userName: userName);
         } else {
-          // السماح للأدمن بالمرور حتى بدون دفع (اختياري)
           if (user.phoneNumber == "+213697443312") return DoctorScreen(userName: userName);
           return PaymentScreen(user: user);
         }
@@ -203,17 +199,16 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     await _auth.verifyPhoneNumber(
       phoneNumber: '+213${_phoneController.text.trim()}',
-      verificationCompleted: (c) async { await _auth.signInWithCredential(c); }, // لن يحدث غالباً
+      verificationCompleted: (c) async { await _auth.signInWithCredential(c); },
       verificationFailed: (e) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ: ${e.message}')));
       },
       codeSent: (String verificationId, int? resendToken) {
         setState(() => _isLoading = false);
-        // الانتقال لصفحة الكود
         Navigator.push(context, MaterialPageRoute(builder: (_) => OTPScreen(
           verificationId: verificationId, 
-          name: _nameController.text, // تمرير الاسم الذي كتبه المستخدم
+          name: _nameController.text, 
           phone: _phoneController.text
         )));
       },
@@ -231,7 +226,8 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)),
+              // ✅ الشعار الجديد هنا أيضاً
+              Image.asset('assets/logo.png', height: 120, errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 100, color: Color(0xFF00BFA5))),
               const SizedBox(height: 20),
               const Text("تسجيل الدخول", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
               const Text("أدخل بياناتك ليتعرف عليك الطبيب", style: TextStyle(color: Colors.grey)),
@@ -322,16 +318,13 @@ class _OTPScreenState extends State<OTPScreen> {
       await _auth.signInWithCredential(credential);
       
       if (_auth.currentUser != null) {
-          // حفظ الاسم في قاعدة البيانات لكي يتذكره البوت
           await FirebaseFirestore.instance.collection('users').doc(_auth.currentUser!.uid).set({
             'name': widget.name, 
             'phone': _auth.currentUser!.phoneNumber, 
-            'isPaid': false, // افتراضياً غير مدفوع
+            'isPaid': false,
             'lastLogin': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-          // ✅ الحل لمشكلة عدم الدخول: استخدام pushAndRemoveUntil
-          // هذا يمسح كل الشاشات السابقة ويأخذك فوراً لصفحة البداية (التي ستوجهك للطبيب)
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const AuthGate()),
@@ -386,7 +379,7 @@ class _OTPScreenState extends State<OTPScreen> {
   }
 }
 
-// --- 6. شاشة الطبيب (النسخة الذكية والمنظمة) ---
+// --- 6. شاشة الطبيب ---
 class DoctorScreen extends StatefulWidget {
   final String userName; 
   const DoctorScreen({super.key, required this.userName});
@@ -402,13 +395,12 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
-  // 🔴🔴 مفتاحك هنا 🔴🔴
-  final String _apiKey = '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';
+  // 🔴🔴 مفتاح Groq هنا 🔴🔴
+  final String _apiKey = 'ضع_مفتاح_Groq_الخاص_بك_هنا';
 
   @override
   void initState() {
     super.initState();
-    // رسالة ترحيبية ذكية
     _addMessage("role", "assistant", "أهلاً بك يا ${widget.userName} 👋\nأنا معاك، احكيلي واش بيك اليوم؟");
   }
 
@@ -455,17 +447,15 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
           'messages': [
             {
               'role': 'system', 
-              // ✅ تحسين الذكاء: تعليمات صارمة للتنسيق والاسم
               'content': '''
-                أنت طبيب جزائري محترف وودود في تطبيق Afya DZ.
+                أنت طبيب جزائري محترف وودود في تطبيق عافية.
                 اسم المريض هو: "${widget.userName}".
                 التعليمات:
                 1. تكلم بالدارجة الجزائرية المفهومة.
-                2. لا تكرر اسم المريض في كل جملة (استخدمه مرة واحدة فقط في البداية).
+                2. لا تكرر اسم المريض في كل جملة.
                 3. اجعل إجابتك منظمة ومرتبة (استخدم نقاط وعوارض).
-                4. إذا كانت الأعراض خطيرة، انصحه بالذهاب للمستشفى فوراً.
+                4. إذا كانت الأعراض خطيرة، انصحه بالذهاب للمستشفى.
                 5. اجعل النص يظهر بشكل صحيح من اليمين لليسار.
-                6. كن مختصراً ومفيداً.
               '''
             },
             {'role': 'user', 'content': message}
@@ -492,7 +482,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Afya DZ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), 
+        title: const Text("عافية", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), 
         centerTitle: true, 
         backgroundColor: const Color(0xFF00BFA5),
         elevation: 0,
@@ -522,7 +512,6 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
                         if (!isUser) BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))
                       ]
                     ),
-                    // ✅ حل مشكلة النص المخلبط: إجبار النص على الاتجاه من اليمين لليسار
                     child: Directionality(
                       textDirection: TextDirection.rtl,
                       child: Text(
@@ -554,11 +543,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
                       color: _isListening ? Colors.redAccent : const Color(0xFF00BFA5),
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(
-                          color: (_isListening ? Colors.red : const Color(0xFF00BFA5)).withOpacity(0.4),
-                          blurRadius: 15,
-                          spreadRadius: 2,
-                        )
+                        BoxShadow(color: (_isListening ? Colors.red : const Color(0xFF00BFA5)).withOpacity(0.4), blurRadius: 15, spreadRadius: 2)
                       ],
                     ),
                     child: Icon(_isListening ? Icons.mic : Icons.mic_none, color: Colors.white, size: 35),
@@ -575,6 +560,4 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   }
 }
 
-// شاشة الدفع (تبقى كما هي)
-class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); final String slickPayLink = "https://slick-pay.com/invoice/payment/eyJpdiI6IlFVZzVxTEljNlk3SmRZd0xwc0h3dmc9PSIsInZhbHVlIjoiWHFDY3pBaFJWWGFXTFNkcUtCeWs0TG54S25Qa2tlM3pqRDFScWs3K0xKRT0iLCJtYWMiOiJlM2U4ZmVlNDgzYTIxYmY1NmQ3NDJmZTliOTljNjE4N2M2ZWQ0M2JhMjg3YmNiYzU1YjYxZTlmNTZjYTIyMzA3IiwidGFnIjoiIn0=/merchant"; @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: ElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SlickPayWebView(url: slickPayLink))), child: const Text("دفع الاشتراك")))); } }
-class SlickPayWebView extends StatelessWidget { final String url; const SlickPayWebView({super.key, required this.url}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("الدفع")), body: WebViewWidget(controller: WebViewController()..loadRequest(Uri.parse(url)))); } }
+class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: Text("يرجى الدفع"))); } }
