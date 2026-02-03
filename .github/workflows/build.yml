@@ -23,44 +23,45 @@ jobs:
         with:
           channel: 'stable'
 
-      # 1. حفظ الكود
       - name: Backup User Code
         run: |
           cp pubspec.yaml pubspec.yaml.bak
           cp -r lib lib_bak
+          # نحتفظ بالصورة أيضاً
+          if [ -f "logo.png" ]; then cp logo.png logo_bak.png; fi 
           if [ -f "android/app/google-services.json" ]; then
             cp android/app/google-services.json google-services-backup.json
           fi
 
-      # 2. تنظيف
       - name: Clean Old Android
         run: rm -rf android
 
-      # 3. إنشاء جديد
       - name: Generate Project Skeleton
         run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
 
-      # 4. استرجاع الكود
       - name: Restore User Code
         run: |
           mv pubspec.yaml.bak pubspec.yaml
           rm -rf lib
           mv lib_bak lib
+          # نسترجع الصورة
+          if [ -f "logo_bak.png" ]; then mv logo_bak.png logo.png; fi
           if [ -f "google-services-backup.json" ]; then
             mkdir -p android/app
             mv google-services-backup.json android/app/google-services.json
           fi
 
-      # 5. حقن الصلاحيات + فايربيز (هذه الإضافة الجديدة والضرورية للمايكروفون)
+      # تعديل الاسم إلى "عافية" في ملفات الأندرويد
+      - name: Update App Name to Arabic
+        run: |
+          sed -i 's/android:label="afyadz"/android:label="عافية"/g' android/app/src/main/AndroidManifest.xml
+
       - name: Inject Permissions & Config
         run: |
-          # 1. إضافة صلاحية المايكروفون والإنترنت في AndroidManifest
-          # نبحث عن وسم <application ونضع الصلاحيات قبله
           sed -i '/<application/i \    <uses-permission android:name="android.permission.RECORD_AUDIO"/>' android/app/src/main/AndroidManifest.xml
           sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
           sed -i '/<application/i \    <uses-permission android:name="android.permission.MICROPHONE"/>' android/app/src/main/AndroidManifest.xml
 
-          # 2. إعدادات فايربيز (التي نجحت سابقاً)
           if [ -f "android/build.gradle.kts" ]; then
             echo 'buildscript { repositories { google(); mavenCentral() }; dependencies { classpath("com.google.gms:google-services:4.4.2") } }' > temp_header
             cat android/build.gradle.kts >> temp_header
@@ -75,6 +76,10 @@ jobs:
 
       - name: Install Dependencies
         run: flutter pub get
+
+      # 👇 هذا هو الأمر الجديد الذي يصنع الأيقونة
+      - name: Generate Launcher Icons
+        run: dart run flutter_launcher_icons
 
       - name: Build APK
         run: flutter build apk --release
