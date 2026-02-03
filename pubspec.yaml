@@ -16,7 +16,6 @@ dependencies:
   webview_flutter: ^4.8.0
   speech_to_text: ^7.0.0
   permission_handler: ^11.3.1
-  # 👇 الإضافات الجديدة للتصميم
   introduction_screen: ^3.1.14
   shared_preferences: ^2.2.3
   cupertino_icons: ^1.0.6
@@ -28,3 +27,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # 👇 هنا الإضافة الجديدة لتعريف الصورة
+  assets:
+    - assets/logo.png
