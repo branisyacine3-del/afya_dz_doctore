@@ -24,9 +24,19 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  # 👇 هذه هي الأداة السحرية للأيقونات
+  flutter_launcher_icons: ^0.13.1
+
+# 👇 هنا إعدادات الأيقونة
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "logo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#00BFA5" # لون الخلفية (أخضر التطبيق)
+  adaptive_icon_foreground: "logo.png"
 
 flutter:
   uses-material-design: true
-  # 👇 التعديل هنا: حذفنا اسم المجلد لأن الصورة في الخارج
   assets:
     - logo.png
