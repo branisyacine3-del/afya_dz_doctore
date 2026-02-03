@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http; // مكتبة الاتصال
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -83,7 +83,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   bool _isLoading = false;
   late AnimationController _animationController;
 
-  // 🔴🔴 هام: ضع مفتاحك الجديد هنا (بعد تحويل المشروع لـ Private) 🔴🔴
+  // 🔴🔴 ضع مفتاحك هنا 🔴🔴
   final String _apiKey = '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';
 
   @override
@@ -126,7 +126,6 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     }
   }
 
-  // دالة الاتصال المصححة (تستخدم Llama 3 بدلاً من Mixtral الملغي)
   Future<void> _handleUserMessage(String message) async {
     _addMessage("role", "user", message);
     setState(() => _isLoading = true);
@@ -141,8 +140,8 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
           'Authorization': 'Bearer $_apiKey',
         },
         body: jsonEncode({
-          // 👇 التغيير الحاسم: استخدام موديل Llama 3 النشط حالياً
-          'model': 'llama3-70b-8192', 
+          // ✅ التعديل هنا: استخدام الموديل الأحدث والمدعوم حالياً
+          'model': 'llama-3.3-70b-versatile', 
           'messages': [
             {
               'role': 'system', 
