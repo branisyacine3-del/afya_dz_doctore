@@ -24,7 +24,7 @@ class AfyaDZApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'عافية', // تم تغيير الاسم هنا أيضاً داخلياً
+      title: 'عافية',
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: const Color(0xFF00BFA5),
@@ -72,14 +72,13 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ✅ الشعار الجديد هنا
             Container(
               padding: const EdgeInsets.all(15),
               decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              // استخدام الصورة بدلاً من الأيقونة
               child: ClipOval(
-                child: Image.asset('assets/logo.png', height: 100, width: 100, fit: BoxFit.cover,
-                  errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)), // احتياطي لو الصورة لم ترفع
+                // ✅ تم التعديل: استدعاء الصورة من المسار المباشر
+                child: Image.asset('logo.png', height: 100, width: 100, fit: BoxFit.cover,
+                  errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)),
                 ),
               ),
             ),
@@ -119,7 +118,8 @@ class IntroScreen extends StatelessWidget {
         PageViewModel(
           title: "طبيبك الذكي في جيبك",
           body: "تشخيص فوري ودقيق لحالتك الصحية باستخدام أحدث تقنيات الذكاء الاصطناعي.",
-          image: Image.asset('assets/logo.png', height: 120, errorBuilder: (c,e,s)=>const Icon(Icons.medical_services, size: 100, color: Color(0xFF00BFA5))),
+          // ✅ تم التعديل هنا أيضاً
+          image: Image.asset('logo.png', height: 120, errorBuilder: (c,e,s)=>const Icon(Icons.medical_services, size: 100, color: Color(0xFF00BFA5))),
           decoration: const PageDecoration(pageColor: Colors.white),
         ),
         PageViewModel(
@@ -226,8 +226,8 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              // ✅ الشعار الجديد هنا أيضاً
-              Image.asset('assets/logo.png', height: 120, errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 100, color: Color(0xFF00BFA5))),
+              // ✅ تم التعديل: استدعاء الصورة هنا أيضاً
+              Image.asset('logo.png', height: 120, errorBuilder: (c,e,s) => const Icon(Icons.health_and_safety, size: 100, color: Color(0xFF00BFA5))),
               const SizedBox(height: 20),
               const Text("تسجيل الدخول", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))),
               const Text("أدخل بياناتك ليتعرف عليك الطبيب", style: TextStyle(color: Colors.grey)),
