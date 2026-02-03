@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http; // مكتبة الاتصال
-import 'dart:convert'; // لمعالجة البيانات
+import 'dart:convert';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -24,7 +24,7 @@ class AfyaDZApp extends StatelessWidget {
       title: 'Afya DZ',
       theme: ThemeData(
         useMaterial3: true,
-        primaryColor: const Color(0xFF00BFA5), // أخضر طبي
+        primaryColor: const Color(0xFF00BFA5),
         scaffoldBackgroundColor: const Color(0xFFF5F7FA),
         fontFamily: 'Roboto',
       ),
@@ -33,7 +33,6 @@ class AfyaDZApp extends StatelessWidget {
   }
 }
 
-// --- بوابة التحقق ---
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
   @override
@@ -68,7 +67,6 @@ class PaymentCheckGate extends StatelessWidget {
   }
 }
 
-// --- شاشة الطبيب (Groq API) ---
 class DoctorScreen extends StatefulWidget {
   final bool isAdmin;
   const DoctorScreen({super.key, required this.isAdmin});
@@ -85,7 +83,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   bool _isLoading = false;
   late AnimationController _animationController;
 
-  // ✅ تم وضع مفتاحك الجديد هنا مباشرة
+  // 🔴🔴 هام: ضع مفتاحك الجديد هنا (بعد تحويل المشروع لـ Private) 🔴🔴
   final String _apiKey = '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';
 
   @override
@@ -128,7 +126,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
     }
   }
 
-  // دالة الاتصال المحسنة (لحل مشكلة 400)
+  // دالة الاتصال المصححة (تستخدم Llama 3 بدلاً من Mixtral الملغي)
   Future<void> _handleUserMessage(String message) async {
     _addMessage("role", "user", message);
     setState(() => _isLoading = true);
@@ -139,11 +137,12 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json; charset=utf-8', // ضمان ترميز اللغة
-          'Authorization': 'Bearer $_apiKey', // استخدام المفتاح
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization': 'Bearer $_apiKey',
         },
         body: jsonEncode({
-          'model': 'mixtral-8x7b-32768', // موديل مستقر وسريع جداً
+          // 👇 التغيير الحاسم: استخدام موديل Llama 3 النشط حالياً
+          'model': 'llama3-70b-8192', 
           'messages': [
             {
               'role': 'system', 
@@ -156,12 +155,10 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
       );
 
       if (response.statusCode == 200) {
-        // نجاح: فك التشفير وعرض الرد
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final reply = data['choices'][0]['message']['content'];
         _addMessage("role", "assistant", reply);
       } else {
-        // فشل: عرض تفاصيل الخطأ
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['error']['message'] ?? 'خطأ غير معروف';
         _addMessage("role", "assistant", "🔴 خطأ من السيرفر ($errorMessage)");
@@ -217,7 +214,7 @@ class _DoctorScreenState extends State<DoctorScreen> with SingleTickerProviderSt
   }
 }
 
-// --- شاشات الدخول والدفع ---
+// الكلاسات الأخرى (LoginScreen, PaymentScreen)
 class LoginScreen extends StatefulWidget { const LoginScreen({super.key}); @override State<LoginScreen> createState() => _LoginScreenState(); }
 class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController(); final _nameController = TextEditingController(); final FirebaseAuth _auth = FirebaseAuth.instance; String? _verificationId; bool _isLoading = false;
@@ -225,5 +222,4 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showOtpDialog() { final otpController = TextEditingController(); showDialog(context: context, barrierDismissible: false, builder: (context) => AlertDialog(title: const Text('كود التحقق'), content: TextField(controller: otpController, keyboardType: TextInputType.number), actions: [TextButton(onPressed: () async { PhoneAuthCredential c = PhoneAuthProvider.credential(verificationId: _verificationId!, smsCode: otpController.text); await _auth.signInWithCredential(c); if (_auth.currentUser != null) { await FirebaseFirestore.instance.collection('users').doc(_auth.currentUser!.uid).set({'name': _nameController.text, 'phone': _auth.currentUser!.phoneNumber, 'isPaid': false}, SetOptions(merge: true)); } Navigator.pop(context); }, child: const Text('تأكيد'))])); }
   @override Widget build(BuildContext context) { return Scaffold(backgroundColor: Colors.white, body: Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.health_and_safety, size: 80, color: Color(0xFF00BFA5)), const SizedBox(height: 20), const Text("Afya DZ", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF00BFA5))), const SizedBox(height: 40), TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'الاسم', border: OutlineInputBorder())), const SizedBox(height: 10), TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'رقم الهاتف (بدون 0)', prefixText: '+213 ', border: OutlineInputBorder())), const SizedBox(height: 20), _isLoading ? const CircularProgressIndicator() : ElevatedButton(onPressed: _verifyPhone, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BFA5), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50)), child: const Text("دخول"))]))); }
 }
-class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); final String slickPayLink = "https://slick-pay.com/invoice/payment/eyJpdiI6IlFVZzVxTEljNlk3SmRZd0xwc0h3dmc9PSIsInZhbHVlIjoiWHFDY3pBaFJWWGFXTFNkcUtCeWs0TG54S25Qa2tlM3pqRDFScWs3K0xKRT0iLCJtYWMiOiJlM2U4ZmVlNDgzYTIxYmY1NmQ3NDJmZTliOTljNjE4N2M2ZWQ0M2JhMjg3YmNiYzU1YjYxZTlmNTZjYTIyMzA3IiwidGFnIjoiIn0=/merchant"; @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: ElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SlickPayWebView(url: slickPayLink))), child: const Text("دفع الاشتراك")))); } }
-class SlickPayWebView extends StatelessWidget { final String url; const SlickPayWebView({super.key, required this.url}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("الدفع")), body: WebViewWidget(controller: WebViewController()..loadRequest(Uri.parse(url)))); } }
+class PaymentScreen extends StatelessWidget { final User user; const PaymentScreen({super.key, required this.user}); @override Widget build(BuildContext context) { return Scaffold(appBar: AppBar(title: const Text("تفعيل الحساب")), body: Center(child: Text("يرجى الدفع لتفعيل الحساب"))); } }
