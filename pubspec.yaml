@@ -9,18 +9,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  # مكتبات جوجل الأساسية
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
   cloud_firestore: ^5.0.0
+  
+  # مكتبات الاتصال والذكاء
   http: ^1.2.0
   webview_flutter: ^4.8.0
+  
+  # مكتبات الصوت والصلاحيات
   speech_to_text: ^7.0.0
   permission_handler: ^11.3.1
+  
+  # مكتبات التصميم والتخزين
   introduction_screen: ^3.1.14
   shared_preferences: ^2.2.3
   cupertino_icons: ^1.0.6
-  # 👇 الإضافة الجديدة المهمة جداً للتنسيق
-  flutter_markdown: ^0.7.3
+  
+  # 👇 المكتبات الجديدة التي سببت الخطأ (تمت إضافتها)
+  flutter_markdown: ^0.7.3        # لتنسيق النصوص الطبية
+  connectivity_plus: ^6.0.3       # لفحص اتصال الإنترنت
 
 dev_dependencies:
   flutter_test:
