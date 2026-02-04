@@ -12,6 +12,7 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart'; // ✅ تمت إضافة هذه المكتبة للتمييز بين الويب والأندرويد
 
 // ==========================================
 // 1. إعدادات التطبيق (Main Setup)
@@ -19,7 +20,25 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  // 👇 هنا تم وضع المفاتيح التي أرسلتها لي (لحل مشكلة الشاشة البيضاء في الويب)
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyBnUNBUu569NDFshWL6I-NKOSaLb96yepE",
+        appId: "1:103446029471:web:402b943887022dc57deeaa",
+        messagingSenderId: "103446029471",
+        projectId: "afyadz",
+        authDomain: "afyadz.firebaseapp.com",
+        storageBucket: "afyadz.firebasestorage.app",
+        measurementId: "G-JZH5LLBS4B",
+        databaseURL: "https://afyadz-default-rtdb.firebaseio.com",
+      ),
+    );
+  } else {
+    // للأندرويد (يعمل تلقائياً)
+    await Firebase.initializeApp();
+  }
   
   // تثبيت الوضع العمودي
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
