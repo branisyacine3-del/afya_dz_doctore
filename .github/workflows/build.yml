@@ -1,9 +1,13 @@
-name: Build Afya DZ App
+name: Build Web & Android
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+# إعطاء صلاحية الكتابة للنشر
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -23,11 +27,11 @@ jobs:
         with:
           channel: 'stable'
 
+      # --- 1. تحضير الملفات (كودك الأصلي) ---
       - name: Backup User Code
         run: |
           cp pubspec.yaml pubspec.yaml.bak
           cp -r lib lib_bak
-          # نحتفظ بالصورة أيضاً
           if [ -f "logo.png" ]; then cp logo.png logo_bak.png; fi 
           if [ -f "android/app/google-services.json" ]; then
             cp android/app/google-services.json google-services-backup.json
@@ -37,21 +41,20 @@ jobs:
         run: rm -rf android
 
       - name: Generate Project Skeleton
-        run: flutter create . --org com.doctor --project-name afyadz --platforms=android --no-pub --overwrite
+        run: flutter create . --org com.doctor --project-name afyadz --platforms=android,web --no-pub --overwrite
 
       - name: Restore User Code
         run: |
           mv pubspec.yaml.bak pubspec.yaml
           rm -rf lib
           mv lib_bak lib
-          # نسترجع الصورة
           if [ -f "logo_bak.png" ]; then mv logo_bak.png logo.png; fi
           if [ -f "google-services-backup.json" ]; then
             mkdir -p android/app
             mv google-services-backup.json android/app/google-services.json
           fi
 
-      # تعديل الاسم إلى "عافية" في ملفات الأندرويد
+      # --- 2. تعديلات الأندرويد (كودك الأصلي) ---
       - name: Update App Name to Arabic
         run: |
           sed -i 's/android:label="afyadz"/android:label="عافية"/g' android/app/src/main/AndroidManifest.xml
@@ -60,8 +63,7 @@ jobs:
         run: |
           sed -i '/<application/i \    <uses-permission android:name="android.permission.RECORD_AUDIO"/>' android/app/src/main/AndroidManifest.xml
           sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>' android/app/src/main/AndroidManifest.xml
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.MICROPHONE"/>' android/app/src/main/AndroidManifest.xml
-
+          
           if [ -f "android/build.gradle.kts" ]; then
             echo 'buildscript { repositories { google(); mavenCentral() }; dependencies { classpath("com.google.gms:google-services:4.4.2") } }' > temp_header
             cat android/build.gradle.kts >> temp_header
@@ -77,15 +79,42 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      # 👇 هذا هو الأمر الجديد الذي يصنع الأيقونة
       - name: Generate Launcher Icons
         run: dart run flutter_launcher_icons
 
+      # --- 3. البناء والنشر (الإضافات الجديدة) ---
+
+      # أ. بناء الأندرويد
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Upload APK
+      # ب. بناء الويب (للآيفون والكمبيوتر)
+      # ملاحظة: تأكدنا من وضع المسار الصحيح /afya_dz_doctore/app/
+      - name: Build Web App
+        run: flutter build web --release --base-href "/afya_dz_doctore/app/"
+
+      # ج. ترتيب الملفات للنشر (غرفة الموقع وغرفة التطبيق)
+      - name: Organize Files for Deployment
+        run: |
+          mkdir public
+          # نسخ ملفات الموقع الرئيسية
+          cp index.html public/
+          cp logo.png public/
+          
+          # إنشاء مجلد للتطبيق ونسخ ملفات الويب داخله
+          mkdir public/app
+          cp -r build/web/* public/app/
+
+      # د. نشر المجلد public إلى فرع gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+
+      # هـ. رفع ملف APK للتحميل
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: afya-dz-release
+          name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
