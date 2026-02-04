@@ -11,7 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:connectivity_plus/connectivity_plus.dart'; // تأكد من إضافة هذه المكتبة في pubspec.yaml
+import 'package:connectivity_plus/connectivity_plus.dart'; 
 
 // ==========================================
 // 1. إعدادات التطبيق والثيمات (Theme Config)
@@ -20,16 +20,8 @@ import 'package:connectivity_plus/connectivity_plus.dart'; // تأكد من إض
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
-  // تثبيت الوضع العمودي فقط
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  
-  // تلوين شريط الحالة
-  SystemChrome.setSystemUIOverlayStyle(const SystemUIOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-  ));
-
+  // تم إزالة أكواد التنسيق (SystemChrome) لأنها كانت تسبب فشل البناء في GitHub Actions
+  // التطبيق الآن سيعمل مباشرة بدون مشاكل
   runApp(const AfyaDZApp());
 }
 
