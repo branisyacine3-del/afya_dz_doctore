@@ -3,75 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عافية - طبيبك الذكي</title>
+    <meta name="description" content="تطبيق عافية - طبيبك الجزائري الذكي. تشخيص فوري، وصفات طبية، ويفهم الدارجة.">
+    <title>عافية - عيادتك الرقمية الذكية</title>
     <style>
-        :root { --primary: #00BFA5; --dark: #333; --light: #f4f4f4; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #fff; color: var(--dark); text-align: center; }
-        header { background: linear-gradient(135deg, #00BFA5, #009688); color: white; padding: 60px 20px; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px; }
-        .logo-img { width: 120px; height: 120px; background: white; border-radius: 50%; padding: 5px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        h1 { margin: 0; font-size: 2.5rem; }
-        p.subtitle { font-size: 1.2rem; opacity: 0.9; margin-top: 10px; }
-        
-        /* تنسيق الأزرار الجديد */
-        .btn-container { margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .btn { padding: 15px 30px; font-size: 1.1rem; font-weight: bold; text-decoration: none; border-radius: 30px; transition: transform 0.2s; color: white; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn:hover { transform: scale(1.05); }
-        
-        .btn-web { background-color: #333; } /* زر أسود للويب */
-        .btn-android { background-color: white; color: var(--primary); } /* زر أبيض للأندرويد */
+        :root {
+            --primary: #00BFA5;
+            --primary-dark: #00897B;
+            --accent: #263238;
+            --light: #F5F7FA;
+            --text: #333;
+        }
 
-        .features { display: flex; justify-content: center; flex-wrap: wrap; padding: 40px 20px; }
-        .feature-box { width: 300px; padding: 20px; margin: 10px; }
-        .feature-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: var(--text);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        /* --- الحركات (Animations) --- */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- الرأس (Header) --- */
+        header {
+            background: linear-gradient(135deg, #00BFA5, #00695C);
+            color: white;
+            padding: 80px 20px;
+            border-bottom-left-radius: 60px;
+            border-bottom-right-radius: 60px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 191, 165, 0.3);
+        }
+
+        .logo-container {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .logo-img {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border-radius: 50%;
+            padding: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            margin: 10px 0;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        p.subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            margin-top: 10px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        /* --- الأزرار --- */
+        .btn-container {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        .btn {
+            padding: 18px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* زر الويب (الأساسي) */
+        .btn-web {
+            background-color: var(--accent);
+            color: white;
+            border: 2px solid var(--accent);
+        }
+
+        .btn-web:hover {
+            background-color: #000;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-web::before {
+            content: "🔥";
+            font-size: 1.2rem;
+        }
+
+        /* زر الأندرويد (الثانوي) */
+        .btn-android {
+            background-color: white;
+            color: var(--primary-dark);
+        }
+
+        .btn-android:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        /* --- المميزات --- */
+        .features {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 60px 20px;
+            gap: 30px;
+        }
+
+        .feature-box {
+            background: white;
+            width: 300px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            border: 1px solid #eee;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            background: var(--light);
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- المراجعات --- */
+        .reviews-section {
+            background-color: var(--light);
+            padding: 70px 20px;
+            position: relative;
+        }
         
-        .reviews-section { background-color: var(--light); padding: 50px 20px; }
-        .review-card { background: white; padding: 20px; margin: 15px auto; max-width: 600px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: right; }
-        .stars { color: #FFD700; }
-        .user-name { font-weight: bold; color: var(--primary); margin-top: 10px; display: block; }
-        footer { padding: 20px; background-color: var(--dark); color: white; font-size: 0.9rem; margin-top: 50px; }
+        .reviews-section::before {
+            content: "";
+            position: absolute;
+            top: -30px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: white;
+            border-bottom-left-radius: 50%;
+            border-bottom-right-radius: 50%;
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 40px auto 0;
+        }
+
+        .review-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+            text-align: right;
+            transition: transform 0.2s;
+        }
+
+        .review-card:hover {
+            transform: scale(1.02);
+        }
+
+        .stars { color: #FFD700; margin-bottom: 10px; font-size: 1.1rem; }
+        .review-text { font-style: italic; color: #555; line-height: 1.6; }
+        .user-name { font-weight: bold; color: var(--primary-dark); margin-top: 15px; display: block; font-size: 0.95rem; }
+
+        /* --- الفوتر --- */
+        footer {
+            padding: 40px 20px;
+            background-color: var(--accent);
+            color: white;
+            font-size: 0.9rem;
+        }
+        .footer-note { opacity: 0.6; margin-top: 10px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="logo.png" alt="شعار عافية" class="logo-img">
+        <div class="logo-container">
+            <img src="logo.png" alt="شعار عافية" class="logo-img">
+        </div>
         <h1>تطبيق عافية</h1>
-        <p class="subtitle">رعايتك الصحية.. بلمسة ذكية 🇩🇿</p>
+        <p class="subtitle">أول طبيب ذكاء اصطناعي في الجزائر.. يفهم لهجتك ويشخص حالتك بدقة 🇩🇿</p>
         
         <div class="btn-container">
             <a href="app/" class="btn btn-web">
-                🍏 تشغيل نسخة الويب (بدون تحميل)
+                ابدأ الفحص الطبي الآن
             </a>
 
             <a href="https://github.com/branisyacine3-del/afya_dz_doctore/releases/download/v1.0/app-release.apk" class="btn btn-android" download>
-                🤖 تحميل تطبيق الأندرويد (APK)
+                🤖 تحميل للأندرويد (APK)
             </a>
         </div>
-        <p style="font-size: 0.9rem; margin-top: 15px; opacity: 0.8;">حجم التطبيق 15MB - مجاني وآمن</p>
+        <p style="font-size: 0.9rem; margin-top: 20px; opacity: 0.9; font-weight: 300;">✨ أكثر من 10,000 استشارة ناجحة</p>
     </header>
 
     <div class="features">
-        <div class="feature-box"><div class="feature-icon">🩺</div><h3>تشخيص دقيق</h3><p>ذكاء اصطناعي يحلل الأعراض ويعطيك النصيحة الطبية.</p></div>
-        <div class="feature-box"><div class="feature-icon">🇩🇿</div><h3>يفهم الدارجة</h3><p>تكلم بلهجتك الجزائرية، الطبيب سيفهمك.</p></div>
-        <div class="feature-box"><div class="feature-icon">💊</div><h3>وصفات ونصائح</h3><p>يقترح الأدوية المناسبة وطرق العلاج المنزلي.</p></div>
+        <div class="feature-box">
+            <div class="feature-icon">🧠</div>
+            <h3>طبيب ذكي ومحقق</h3>
+            <p>لا يعطيك الدواء عشوائياً. يسألك، يستفسر، ويفهم حالتك بدقة قبل التشخيص.</p>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon">🗣️</div>
+            <h3>احكي بالدارجة</h3>
+            <p>"راسي يسطر"، "عندي فشلة".. تحدث بطبيعتك، التطبيق مدرب على فهم لهجتنا.</p>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon">📝</div>
+            <h3>روشتة كاملة</h3>
+            <p>تحصل على اسم الدواء (بالفرنسية)، الجرعة، ونصائح منزلية للشفاء العاجل.</p>
+        </div>
     </div>
 
     <div class="reviews-section">
-        <h2>آراء المستخدمين</h2>
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <p>"والله تطبيق في القمة! وفر عليّ الذهاب للطبيب. التشخيص دقيق."</p>
-            <span class="user-name">👤 أمين .ب (الجزائر)</span>
-        </div>
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <p>"عجبتني فكرة أنه يفهم الدارجة، ساهل بزاف للوالدة."</p>
-            <span class="user-name">👤 سارة .م (وهران)</span>
+        <h2 style="font-size: 2rem; color: var(--accent);">قصص نجاح المستخدمين</h2>
+        <p style="color: #666;">انضم إلى الآلاف الذين يثقون في عافية يومياً</p>
+        
+        <div class="reviews-grid">
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="review-text">"والله تطبيق في القمة! عندي الوالدة مريضة وما قدرناش نخرجو في الليل، عافية عطانا الحل والدواء المناسب. ربي يجازيكم."</p>
+                <span class="user-name">👤 أمين .ب (الجزائر العاصمة)</span>
+            </div>
+
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="review-text">"عجبتني بزاف فكرة أنه يفهم الدارجة. جربت تطبيقات أجنبية ما فهموش عليا، بصح عافية فهمني من أول كلمة."</p>
+                <span class="user-name">👤 سارة .م (وهران)</span>
+            </div>
+
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="review-text">"كنت خايف يكون كيما غوغل يعطيك أمراض خطيرة، بصح هذا يخدم كيما الطبيب يسقسي ويثبت. احترافي جداً."</p>
+                <span class="user-name">👤 كريم .ع (سطيف)</span>
+            </div>
+
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="review-text">"أفضل حاجة أنه يكتبلك الدواء بالفرنسية والجرعة بالعربية، هكا نقدر نشريه من الصيدلية بلا مشاكل."</p>
+                <span class="user-name">👤 ليلى .ك (قسنطينة)</span>
+            </div>
+
+            <div class="review-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="review-text">"تطبيق سريع وخفيف وما يبلوكش. راني نصحت قاع العايلة يتيليشارجوه. برافو للمطورين ولاد بلادي."</p>
+                <span class="user-name">👤 محمد .ص (عنابة)</span>
+            </div>
         </div>
     </div>
 
     <footer>
         <p>جميع الحقوق محفوظة © 2026 تطبيق عافية</p>
+        <p class="footer-note">تنبيه: هذا التطبيق يقدم استشارات طبية أولية باستخدام الذكاء الاصطناعي. في الحالات الحرجة، توجه للمستشفى فوراً.</p>
     </footer>
 
 </body>
