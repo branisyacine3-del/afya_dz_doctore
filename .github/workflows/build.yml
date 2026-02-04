@@ -90,8 +90,9 @@ jobs:
 
       # ب. بناء الويب (للآيفون والكمبيوتر)
       # ملاحظة: تأكدنا من وضع المسار الصحيح /afya_dz_doctore/app/
+            # ب. بناء الويب (نسخة سريعة جداً باستخدام HTML renderer)
       - name: Build Web App
-         run: flutter build web --release --web-renderer html --base-href "/afya_dz_doctore/app/"
+        run: flutter build web --release --web-renderer html --base-href "/afya_dz_doctore/app/"
 
       # ج. ترتيب الملفات للنشر (غرفة الموقع وغرفة التطبيق)
       - name: Organize Files for Deployment
